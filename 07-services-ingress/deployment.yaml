@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-ingress
+  labels:
+    app: ingress-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingress-test
+  template:
+    metadata:
+      labels:
+        app: ingress-test
+    spec:
+      containers:
+        - name: ingress-hello-app
+          image: gcr.io/google-samples/hello-app:1.0
+          ports:
+          - containerPort: 8080

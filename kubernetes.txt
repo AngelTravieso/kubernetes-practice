@@ -1,0 +1,90 @@
+Comandos para manejar Pods
+Listar Pods kubectl get pods Muestra todos los pods en el namespace actual. Para ver los pods en otro namespace, agrega el flag --namespace=<namespace>.
+Desplegar un Pod kubectl run <nombre-del-pod> --image=<imagen> --restart=Never Crea un pod con el nombre y la imagen especificados. El flag --restart=Never se usa para asegurar que el pod no se reinicie como un Deployment.
+Ver los detalles de un Pod kubectl describe pod <nombre-del-pod> Muestra información detallada sobre un pod, incluidos sus eventos, contenedores, volúmenes, etc.
+Obtener logs de un Pod kubectl logs <nombre-del-pod> Muestra los logs de un pod. Si el pod tiene varios contenedores, puedes especificar el contenedor con el flag -c.
+Eliminar un Pod kubectl delete pod <nombre-del-pod> Elimina el pod especificado.
+Comandos para manejar Nodos
+Listar Nodos kubectl get nodes Muestra una lista de todos los nodos en el clúster.
+Ver los detalles de un Nodo kubectl describe node <nombre-del-nodo> Muestra información detallada sobre un nodo, como la memoria, CPU y recursos disponibles.
+Eliminar un Nodo kubectl delete node <nombre-del-nodo> Elimina el nodo del clúster (no eliminará los pods en el nodo, pero podría afectar su disponibilidad).
+Ver el estado de los Pods en los Nodos kubectl get pods --all-namespaces -o wide Muestra todos los pods de todos los namespaces y en qué nodo están corriendo.
+Comandos para manejar Namespaces
+Listar Namespaces kubectl get namespaces Muestra todos los namespaces en el clúster.
+Crear un Namespace kubectl create namespace <nombre-del-namespace> Crea un nuevo namespace con el nombre especificado.
+Cambiar de Namespace kubectl config set-context --current --namespace=<nombre-del-namespace> Cambia el namespace predeterminado para las siguientes operaciones.
+Eliminar un Namespace kubectl delete namespace <nombre-del-namespace> Elimina el namespace especificado y todos los recursos dentro de él.
+Listar los Pods en un Namespace específico kubectl get pods --namespace=<nombre-del-namespace> Muestra los pods dentro de un namespace específico.
+
+
+Resumen
+
+¿Cómo configurar y empezar a trabajar con Kubernetes usando MiniKube?
+Conocer cómo configurar y gestionar Kubernetes eficientemente es fundamental para cualquier profesional en el área de DevOps o administración de sistemas. Con un clúster configurado con MiniKube, podemos comenzar a explorar las capacidades de Kubernetes. A continuación, te ofrecemos una guía paso a paso basada en prácticas recomendadas para que puedas aprovechar al máximo las herramientas a tu disposición.
+
+¿Cuál es el primer paso para iniciar con MiniKube y Kubernetes?
+Primero, se debe tener el clúster local configurado con MiniKube. Este es una herramienta esencial que te permite gestionar tu clúster localmente, ofreciendo una plataforma flexible para diferentes configuraciones, como trabajar con múltiples nodos o diferentes versiones de Kubernetes. Para iniciar el clúster, usamos el comando:
+
+minikube start --driver=docker
+Este comando, además de levantar el clúster, puede ser complementado con varios parámetros específicos según tus necesidades, como el driver que prefieras usar.
+
+¿Qué es KubeCTL y cómo interactuamos con Kubernetes?
+KubeCTL es el puente esencial hacia el API server de tu clúster de Kubernetes. A través de este, podemos efectuar una variedad de solicitudes como crear, leer, actualizar y eliminar (CRUD) recursos. Un ejemplo básico para consultar los recursos es el comando:
+
+kubectl get pods
+Con este, podemos listar los pods activos en nuestro namespace actual. Sin embargo, para obtener más detalles, podemos usar:
+
+kubectl get pods -o wide
+¿Qué son los namespaces y cómo gestionarlos?
+Los namespaces son cruciales para organizar y separar lógicamente los recursos dentro de Kubernetes. Por defecto, el clúster tiene un namespace de "default", pero puedes crear y eliminar adicionales según sea necesario:
+
+Crear un nuevo namespace:
+
+kubectl create namespace k8s-demo
+
+Validar la creación del namespace:
+
+kubectl get namespaces
+
+Eliminar un namespace:
+
+kubectl delete namespace k8s-demo
+
+¿Cómo gestionamos nodos dentro de Kubernetes?
+Un aspecto importante de Kubernetes es la gestión de nodos que conforman el clúster, donde ejecutamos operaciones con:
+
+Listar nodos:
+
+kubectl get nodes
+
+Describir un nodo:
+
+kubectl describe node
+
+Estos comandos ofrecen información valiosa sobre el rol, estado y recursos del nodo.
+
+¿Cómo se aplican configuraciones operadores declarativas e imperativas?
+Kubernetes permite dos estilos para gestionar configuraciones:
+
+Declarativa: utiliza archivos YAML para definir el estado deseado del sistema.
+Imperativa: ejecuta comandos directamente para llevar a cabo una acción específica.
+Para aplicar un pod usando un archivo YAML de manera imperativa, utilizamos:
+
+kubectl apply -f simple-pod.yaml
+Y para borrar ese pod si ya no es necesario:
+
+kubectl delete pod 
+¿Cómo mantener nuestro clúster a punto con MiniKube?
+Para personalizar nuestro clúster y expandir sus funcionalidades, MiniKube ofrece varios add-ons. Algunos esenciales para mejorar la gestión son:
+
+Metric Server: para obtener métricas del clúster y posibilidades de autoescalamiento.
+
+minikube addons enable metrics-server
+
+Registry: vincula el registro de Docker con MiniKube.
+
+minikube addons enable registry
+
+Estos componentes son críticos para un manejo eficiente y un desarrollo fluido dentro de Kubernetes.
+
+Ahora que hemos explorado las bases para interactuar y gestionar Kubernetes con MiniKube y KubeCTL, es momento de aprender a desplegar aplicaciones complejas. ¡Sigue explorando y aprende más sobre el despliegue de aplicaciones frontend y backend con Kubernetes!
