@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  containers:
+  - name: my-busy-container 
+    image: busybox
+    command: ['sh', '-c', 'while true; do echo "Hola desde Minikube"; sleep 5; done']
+  restartPolicy: OnFailure
