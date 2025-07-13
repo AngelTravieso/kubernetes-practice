@@ -1,0 +1,73 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-backup
+spec:
+  template:
+    spec:
+      containers:
+      - name: mysql-backup
+        image: mysql:8.0
+        command:
+        - /bin/bash
+        - -c
+        - |
+          mysqldump -h mysql-service-sts -u root -p$(MYSQL_ROOT_PASSWORD) $(MYSQL_DATABASE) > /backup/mysql-backup-$(date +%Y%m%d).sql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: root-password
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: database
+        volumeMounts:
+        - name: backup-storage
+          mountPath: /backup
+      volumes:
+      - name: backup-storage
+        persistentVolumeClaim:
+          claimName: mysql-backup-pvc
+      restartPolicy: Never
+  backoffLimit: 4
+
+---
+# create a pvc to claim the pv
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-backup-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  selector:
+    matchLabels:
+      app: mysql-backup
+      purpose: backup
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# create a pv to store the backup
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-backup-pv
+  labels:
+    app: mysql-backup
+    purpose: backup
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /mnt/mysql-backup
+    type: DirectoryOrCreate
