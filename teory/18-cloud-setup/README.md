@@ -62,5 +62,5 @@ kubectl expose pod hello-cloud --type=LoadBalancer --port=8080 --target-port=808
 ### Delete cluster
 
 ```
-eksctl delete cluster --name=dev-1 --region=us-west-2
+eksctl delete cluster --name=dev-1 --region=us-east-1
 ```
