@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-model-pvc
+  namespace: deepseek
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deepseek-server
+  namespace: deepseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deepseek-server
+  template:
+    metadata:
+      labels:
+        app: deepseek-server
+    spec:
+      containers:
+        - name: deepseek-server
+          image: ollama/ollama:latest
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              ollama serve &
+              sleep 2 &&
+              DeepSeek-R1-
+              ollama pull deepseek-r1:1.5b &&
+              tail -f /dev/null
+          ports:
+          - containerPort: 11434
+          volumeMounts:
+          - name: data-server
+            mountPath: /root/.ollama
+          env:
+          - name: OLLAMA_MOD_DIR
+            value: "/root/.ollama"
+      volumes:
+      - name: data-server
+        persistentVolumeClaim:
+          claimName: ollama-model-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deepseek-server
+  namespace: deepseek
+spec:
+  selector:
+    app: deepseek-server
+  ports:
+    - protocol: TCP
+      port: 11434
+      targetPort: 11434

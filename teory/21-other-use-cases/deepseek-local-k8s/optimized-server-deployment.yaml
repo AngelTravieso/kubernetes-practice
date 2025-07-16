@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-model-pvc
+  namespace: deepseek
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deepseek-server
+  namespace: deepseek
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deepseek-server
+  template:
+    metadata:
+      labels:
+        app: deepseek-server
+    spec:
+      # Configuración de afinidad para nodos con GPU
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: hardware-type
+                operator: In
+                values:
+                - GPU
+              - key: gpu-type
+                operator: In
+                values:
+                - nvidia-a100
+              - key: gpu-count
+                operator: Gt
+                values:
+                - "2"
+      # Toleraciones para permitir programación en nodos con taint de GPU
+      tolerations:
+      - key: "hardware"
+        operator: "Equal"
+        value: "gpu"
+        effect: "NoSchedule"
+      containers:
+        - name: deepseek-server
+          image: ollama/ollama:latest
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+              nvidia.com/gpu: 2  # Solicitud de recursos GPU
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+              nvidia.com/gpu: 1  # Solicitud mínima de GPU
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              ollama serve &
+              sleep 2 &&
+              ollama pull deepseek-r1:1.5b &&
+              tail -f /dev/null
+          ports:
+          - containerPort: 11434
+          volumeMounts:
+          - name: data-server
+            mountPath: /root/.ollama
+          env:
+          - name: OLLAMA_MOD_DIR
+            value: "/root/.ollama"
+          # Variables de entorno para NVIDIA
+          - name: NVIDIA_VISIBLE_DEVICES
+            value: "all"
+          - name: NVIDIA_DRIVER_CAPABILITIES
+            value: "compute,utility"
+      volumes:
+      - name: data-server
+        persistentVolumeClaim:
+          claimName: ollama-model-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deepseek-server
+  namespace: deepseek
+spec:
+  selector:
+    app: deepseek-server
+  ports:
+    - protocol: TCP
+      port: 11434
+      targetPort: 11434
