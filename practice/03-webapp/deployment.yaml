@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-deployment
+  labels:
+    app: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: webapp-configmap
+      containers:
+        - name: basic-webapp
+          image: webapp:latest
+          # Buscar en el repositorio local
+          imagePullPolicy: Never
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config
+          ports:
+            - containerPort: 80
